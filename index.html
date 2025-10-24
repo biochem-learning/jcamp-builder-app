@@ -4,8 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="libs/ChemDoodleWeb.css" type="text/css">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/409dbfc954.js" crossorigin="anonymous"></script>
 </head>
 <body>
     
+    <header> 
+        <div class="title">JCAMP BUILDER</div>
+    </header>
+
+    <div class="main-section">
+        <div class="left-section">
+            <div class="metadata-section">
+                <header class="section-header">
+                    <h2>Metadata</h2>
+                </header>
+                
+                <div id="user-input-section">
+                    <div class="metadata">Metadata 1: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 2: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 3: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 4: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 5: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 6: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata">Metadata 7: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                </div>
+
+                <div id="atom-assign-section">
+                    <div id="dragging-area">
+                        <i class="fa-solid fa-bars"></i>
+                        <i id="exit-peak-id" class="fa-regular fa-circle-xmark"></i>
+                    </div>
+                    <div id="atom-assign-table">
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="spec-section">
+                <input type="file" class="file-reader" id="spec-file-reader"/>
+                <div id="spec-canvas-inspection">
+                    <canvas id="canvas-spec"></canvas>
+                    <div id="assigned-peaks"></div>
+                </div>
+                    
+                <div class="struc-btns">
+                    <button class="struc-btn" id="manual-id">Identify Peaks Y with X</button>
+                    <button class="struc-btn" id="auto-id">Automatically Identify Peaks</button>
+                </div>
+            </div>
+        </div>
+        <div class="right-section struc-section">
+            <input type="file" class="file-reader" id="struc-file-reader"/>
+        
+            <div id="struc-canvas-inspection">
+                <canvas id="canvas-struc"></canvas>
+                <div id="assigned-atoms"></div>
+            </div>
+            <button class="right-section-btn" id="add-assign-btn">Add Assignments</button>
+            <button class="right-section-btn" id="merge-btn">Merge JCAMP</button>
+        </div>
+    </div>
+
+    <div class="overlay"></div>
+    <div id="downloadable-content">
+        <textarea class="preview-area" aria-label="Preview of content"></textarea>
+        <div id="download-options">
+            <button class="download-btn" type="button">Download</button>
+            <div class="file-name"> File Name: <input class="file-name-input" type="text"/></div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="./libs/ChemDoodleWeb.js"></script>
+    <script type="text/javascript" src="./libs/ChemDoodleWeb-uis.js"></script>
+    <script type="text/javascript" src="main.js"></script>
 </body>
+
 </html>
