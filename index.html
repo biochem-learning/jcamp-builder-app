@@ -48,7 +48,7 @@
             <div class="spec-section">
                 <input type="file" class="file-reader" id="spec-file-reader"/>
                 <div id="spec-canvas-inspection">
-                    <canvas id="canvas-spec"></canvas>
+                    <canvas id="spec_spectrum"></canvas>
                     <div id="assigned-peaks"></div>
                 </div>
                     
@@ -62,7 +62,7 @@
             <input type="file" class="file-reader" id="struc-file-reader"/>
         
             <div id="struc-canvas-inspection">
-                <canvas id="canvas-struc"></canvas>
+                <canvas id="struc_molecule"></canvas>
                 <div id="assigned-atoms"></div>
             </div>
             <button class="right-section-btn" id="add-assign-btn">Add Assignments</button>
@@ -78,6 +78,24 @@
             <div class="file-name"> File Name: <input class="file-name-input" type="text"/></div>
         </div>
     </div>
+
+    <div id="hoverInfo" style="
+        position: absolute;
+        display: none;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        font-family: sans-serif;
+        font-size: 13px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 9999;
+        transition: opacity 0.1s ease;
+        "></div>
+
+    <canvas id="struc_spectrum" style="display: none;"></canvas>
+    <canvas id="spec_molecule"style="display: none;"></canvas>
 
     <script type="text/javascript" src="./libs/ChemDoodleWeb.js"></script>
     <script type="text/javascript" src="./libs/ChemDoodleWeb-uis.js"></script>

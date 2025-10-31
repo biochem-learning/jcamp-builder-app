@@ -135,8 +135,13 @@ body {
     background-color: white;
 }
 
-#canvas-spec, #canvas-struc {
+#spec_spectrum, #struc_molecule {
+    border: 1px solid #000;
     background-color: white;
+}
+
+#spec_spectrum {
+    width: 60%;
 }
 
 #user-input-section {
@@ -221,7 +226,7 @@ body {
 }
 
 .file-name-input {
-    width: 83%;
+    width: 70%;
 }
 
 .file-name {

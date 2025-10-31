@@ -63,10 +63,6 @@ manualIdBtn.addEventListener("click", () => {
     displayOrHideElement(".overlay")
 });
 
-
-let specCanvas = new ChemDoodle.PerspectiveCanvas('canvas-spec', percentage('#canvas-spec',65,"width"), percentage('#canvas-spec',100,"height"));
-let strucCanvas = new ChemDoodle.ViewerCanvas('canvas-struc', percentage('#canvas-struc',50, "width"), percentage('#canvas-struc',100, "height"));
-
 const specFileInput = document.getElementById("spec-file-reader");
 const strucFileInput = document.getElementById("struc-file-reader");
 
@@ -74,15 +70,23 @@ let specFileContent;
 let strucFileContent;
 
 let builtJcamp;
+let strucCanvas;
+let specCanvas;
+
+let viewMode = "CNMR"
 
 specFileInput.addEventListener("change", function (event) {
   handleFileSelection(event, (content) => {
     specFileContent = content;
 
-    specCanvas.emptyMessage = 'Cannot read file! File may not be spectrum file';
-
-    let spectrum = ChemDoodle.readJCAMP(specFileContent);
-    specCanvas.loadSpectrum(spectrum);
+    let specCanvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
+        'spec', 
+        specFileContent, 
+        0,
+        0,
+        percentage('#spec_spectrum',65,"width"), 
+        percentage('#spec_spectrum',100,"height")
+    )
   });
 });
 
@@ -90,13 +94,14 @@ strucFileInput.addEventListener("change", function (event) {
   handleFileSelection(event, (content) => {
     strucFileContent = content;
 
-    specCanvas.emptyMessage = 'Cannot read file! File may not be structure file';
-
-    let spectrum = ChemDoodle.readJCAMP(strucFileContent);
-
-    if (spectrum.molecule) {
-      strucCanvas.loadMolecule(spectrum.molecule);
-    }
+    let strucCanvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
+        'struc', 
+        strucFileContent, 
+        percentage('#struc_molecule',50, "width"), 
+        percentage('#struc_molecule',100, "height"),
+        0, 
+        0,
+    )
     
   });
 });
