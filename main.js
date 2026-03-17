@@ -121,6 +121,7 @@ strucFileInput.addEventListener("change", function (event) {
         0,
     )
     console.log(strucCanvas)
+    strucCanvas[0].repaint()
   });
 });
 
@@ -368,20 +369,29 @@ function getAssignments() {
 }
 
 function getMetadatas() {
-  const metadataDivs = document.querySelectorAll(".metadata-input");
+  const metadataDivs = document.querySelectorAll("#user-input-section .metadata");
   const metadataDict = {};
 
-  metadataDivs.forEach(input => {
-    const metadata = input.parentElement;
-    const labelDiv = metadata.getElementById(".label")
-    if (labelDiv === "input") {
-      label = false ///read input
+  metadataDivs.forEach(metadata => {
+    const input = metadata.querySelector(".metadata-input");
+    const labelEl = metadata.querySelector(".label");
+
+    if (!input || !labelEl) return;
+
+    let label;
+
+    // Case 1: label is an input (user-created)
+    if (labelEl.tagName.toLowerCase() === "input") {
+      label = labelEl.value.trim();
+    } 
+    // Case 2: label is <p>
+    else {
+      label = labelEl.textContent.replace(":", "").trim();
     }
-    else if (labelDiv === "div") {
-      label = labelDiv.textContent.replace(":", "").trim();
-    }
-    // parentelement => label => if input => read input, if paragraph textContent
-    metadataDict[label] = String(input.value || "");
+
+    if (!label) return;
+
+    metadataDict[label] = input.value.trim();
   });
 
   return metadataDict;
