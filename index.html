@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/409dbfc954.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
     
     <header> 
@@ -21,18 +22,17 @@
     <div class="main-section">
         <div class="left-section">
             <div class="metadata-section">
-                <header class="section-header">
-                    <h2>Metadata</h2>
-                </header>
-                
+
                 <div id="user-input-section">
-                    <div class="metadata">Metadata 1: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 2: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 3: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 4: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 5: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 6: <input class="metadata-input" type="text" style="width: 50%;"/></div>
-                    <div class="metadata">Metadata 7: <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <button class="right-section-btn" id="add-md-assign-btn">Add More Metadata Assignments</button>
+                    <div class="metadata"><p class="label">TITLE: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">NAME: </p> <input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">OWNER: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">ORIGIN: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">DATA TYPE: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">DATE: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    <div class="metadata"><p class="label">TIME: </p><input class="metadata-input" type="text" style="width: 50%;"/></div>
+                    
                 </div>
 
                 <div id="atom-assign-section">
@@ -53,8 +53,8 @@
                 </div>
                     
                 <div class="struc-btns">
-                    <button class="struc-btn" id="manual-id">Identify Peaks Y with X</button>
-                    <button class="struc-btn" id="auto-id">Automatically Identify Peaks</button>
+                    <button class="struc-btn" id="from-x-id">Identify Peaks Y with X</button>
+                    <button class="struc-btn" id="auto-id">Automatically Identify Peaks with Prominence: <input id="prominence-input"></input></button>
                 </div>
             </div>
         </div>

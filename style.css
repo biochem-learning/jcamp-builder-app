@@ -47,10 +47,10 @@ body {
 .right-section {
     overflow-y: scroll;
     border-radius: 7px;
-    margin: 1%;
+    margin: 0.5%;
     width: 40%;
-    height: 87%;
-    border: solid;
+    height: 89%;
+    border: solid 1px;
 
     /* Hide scrollbar for IE, Edge and Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
@@ -71,12 +71,18 @@ body {
 .metadata-section, .spec-section {
     border-radius: 7px;
     margin: 1%;
-    height: 43%;
-    border: solid;
+    height: 43.5%;
+    border: solid 1px;
 }
 
 .metadata-section {
     position: relative;
+}
+
+.metadata {
+    margin: 1%;
+    display: flex;
+    flex-direction: row;
 }
 
 #atom-assign-section {
@@ -104,8 +110,11 @@ body {
     right: 10px;
 }
 
-.metadata-input, .file-reader {
+.file-reader {
     width: 100%;
+}
+.metadata-input {
+    width: 70% !important;
 }
 
 #spec-canvas-inspection {
@@ -141,12 +150,24 @@ body {
 }
 
 #spec_spectrum {
+    border-left: 0px;
     width: 60%;
+}
+
+#struc_molecule{
+    border-left: 0px;
+    width: 50%;
 }
 
 #user-input-section {
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 50% 50%; /*repeat(minmax(100px, 1fr), auto-fill);*/
+    padding: 3%;
+}
+
+.label {
+    width: 30%;
+    margin: 0;
 }
 
 .right-section-btn, #add-assign-btn {
@@ -232,4 +253,8 @@ body {
 .file-name {
     width: 70%;
     margin: 1%;
+}
+
+#prominence-input {
+    width: 10%;
 }

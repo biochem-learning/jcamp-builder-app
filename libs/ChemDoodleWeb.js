@@ -694,16 +694,397 @@ var D=(k-m)/(t-1),E=m-D,F=r,G=0;let H;for(let R=1,K=C.length;R<K;R++){var I=[];E
 u&&A?F=this.getValue(F,G)*x:(A=n[F.charAt(0)]!==u,H=F,E+=D,G=this.getValue(F,G),F=G*x,f.data.push(new w.Point(E/y,F)))}if(a!==-1){A=h-f.data[a-1].x;for(let R=0,K=f.data.length;R<K;R++)f.data[R].x+=A}}else if(C.startsWith("##PEAK TABLE\x3d")){p=!1;f.continuous=!1;A=C.split("\n");C=/[\s,]+/;for(let H=1,R=A.length;H<R;H++){D=A[H].split(C);for(let K=0,L=D.length;K+1<L;K+=2)f.data.push(new w.Point(parseFloat(D[K].trim()),parseFloat(D[K+1].trim())))}}else if(C.startsWith("##ATOMLIST\x3d")){f.molecule=new w.Molecule;
 A=C.split("\n");C=/[\s]+/;for(let H=1,R=A.length;H<R;H++)D=A[H].split(C),f.molecule.atoms.push(new w.Atom(D[1]))}else if(C.startsWith("##BONDLIST\x3d")){A=C.split("\n");C=/[\s]+/;for(let H=1,R=A.length;H<R;H++)D=A[H].split(C),G=1,D[2]==="D"?G=2:D[2]==="T"&&(G=3),f.molecule.bonds.push(new w.Bond(f.molecule.atoms[parseInt(D[0])-1],f.molecule.atoms[parseInt(D[1])-1],G))}else if(f.molecule&&C.startsWith("##XY_RASTER\x3d")){A=C.split("\n");C=/[\s]+/;for(let H=1,R=A.length;H<R;H++)D=A[H].split(C),G=f.molecule.atoms[parseInt(D[0])-
 1],G.x=parseInt(D[1]),G.y=parseInt(D[2]),D.length==4&&(G.z=parseInt(D[3]));f.molecule.scaleToAverageBondLength(20)}else if(C.startsWith("##PEAK ASSIGNMENTS\x3d")){A=C.split("\n");C=/[\s,()<>]+/;f.assignments=[];for(let H=1,R=A.length;H<R;H++){I=A[H].split(C);D=parseFloat(I[1]);G=parseFloat(I[2]);I=f.molecule.atoms[parseInt(I[3])-1];E=!1;for(let K=0,L=f.assignments.length;K<L;K++)if(F=f.assignments[K],F.x===D){F.as.push(I);I.assigned=F;E=!0;break}E||(D={x:D,y:G,as:[I]},I.assigned=D,f.assignments.push(D))}}}else A=
-A.trim(),g.length!==0&&A.length!==0&&g.push("\n"),g.push(A)}f.setup();return f};e.makeStructureSpectrumSet=function(b,f,w1=200,h1=200,w2=400,h2=200) /* !!! NOTE: Parameter w1,h1,w2,h2 are added to support the ability to intialized the width and height of both the Spectral and Molecule Canvas when called */{this.convertHZ2PPM=!0;let g=this.read(f),k=new q.ViewerCanvas(b+"_molecule",w1,h1);k.styles.atoms_displayTerminalCarbonLabels_2D=!0;k.styles.atoms_displayImplicitHydrogens_2D=!0;const hoverInfo = document.getElementById('hoverInfo'); /*!!!NOTE: hoverInfor is added*/k.mouseout=function(r){hoverInfo.style.display = 'none';if(this.molecules.length!==0){for(let t=0,v=this.molecules[0].atoms.length;t<v;t++)this.molecules[0].atoms[t].isHover=!1;g.hovered=u;this.repaint();m.repaint()}};k.touchend=k.mouseout;
-/* !!! NOTE: the entire k.mousemove event is modified */
-k.mousemove = function(r) {if (this.molecules.length === 0 || !r || !r.p) return;let atoms = this.molecules[0].atoms;if (!atoms || atoms.length === 0) return;let t = null;for (let i = 0; i < atoms.length; i++) {let y = atoms[i];y.isHover = false;/* Skip if atom doesn't have proper coordinates */ if (typeof y.x !== "number" || typeof y.y !== "number") continue; /* Compare distance only if both points exist */ if (t === null || r.p.distance(y) < r.p.distance(t)) {t = y;}} g.hovered = null; if (t && typeof t.x === "number" && r.p.distance(t) < 20) {
-console.log("Hovered atom ID:", t.pid || "(no id)"); const struc_canvas = document.getElementById("struc_molecule"); /*'struc_molecule' refers to the actual <canvas> element defined in index.html, which is used here to get its on-screen position via getBoundingClientRect().*/ const rect = struc_canvas.getBoundingClientRect(); hoverInfo.style.left = (rect.left + r.p.x + 10) + "px"; hoverInfo.style.top = (rect.top + r.p.y + 10) + "px"; hoverInfo.textContent = `Atom ID: ${t.pid || "(none)"}`;hoverInfo.style.display = "block"; if (t.assigned && t.assigned.as) { for (let v = 0, x = t.assigned.as.length; v < x; v++) t.assigned.as[v].isHover = true; m.spectrum.hovered = t.assigned;}} this.repaint(); m.repaint();};
-;k.touchmove=k.mousemove;k.drawChildExtras=function(r,t){
-if(this.molecules.length!==0){/* !!! NOTE */ let viewingMode = "CNMR"; if (viewingMode === "IR") {for (let i = 0; i < this.molecules[0].bonds.length; i++) {const bond = this.molecules[0].bonds[i];if (bond.a1.isHover && bond.a2.isHover){r.save();r.strokeStyle = "red";r.lineWidth = 3;r.beginPath();r.moveTo(bond.a1.x, bond.a1.y);r.lineTo(bond.a2.x, bond.a2.y);r.stroke();r.restore();}}}else {for(let v=0,x=this.molecules[0].atoms.length;v<x;v++)this.molecules[0].atoms[v].drawDecorations(r,t); }};
-};let m=new q.PerspectiveCanvas(b+"_spectrum",w2,h2) /* !!! NOTE: ObserverCanvas is changed to PerspectiveCanvas to support the ability to Zoom in and Zoom out in the Spectral Canvas */;m.styles.plots_showYAxis=!1;m.styles.plots_flipXAxis=!0;m.mouseout=function(r){if(this.spectrum&&this.spectrum.assignments){for(let t=0,v=k.molecules[0].atoms.length;t<v;t++)k.molecules[0].atoms[t].isHover=!1;this.spectrum.hovered=u;k.repaint();this.repaint()}};m.touchend=m.mouseout;m.mousemove=function(r){if(this.spectrum&&this.spectrum.assignments){let t=u;for(let v=0,x=k.molecules[0].atoms.length;v<x;v++)
-k.molecules[0].atoms[v].isHover=!1;this.spectrum.hovered=u;for(let v=0,x=this.spectrum.assignments.length;v<x;v++){let y=this.spectrum.assignments[v];if(t===u||Math.abs(this.spectrum.getTransformedX(y.x,this.styles,this.spectrum.memory.width,this.spectrum.memory.offsetLeft)-r.p.x)<Math.abs(this.spectrum.getTransformedX(t.x,this.styles,this.spectrum.memory.width,this.spectrum.memory.offsetLeft)-r.p.x))t=y}if(Math.abs(this.spectrum.getTransformedX(t.x,this.styles,this.spectrum.memory.width,this.spectrum.memory.offsetLeft)-
-r.p.x)<20){for(let v=0,x=t.as.length;v<x;v++)t.as[v].isHover=!0;this.spectrum.hovered=t;};k.repaint();this.repaint()}};m.touchmove=m.mousemove;m.drawChildExtras=function(r){if(this.spectrum&&this.spectrum.hovered){let t=this.spectrum.getTransformedX(this.spectrum.hovered.x,m.styles,this.spectrum.memory.width,this.spectrum.memory.offsetLeft);t>=this.spectrum.memory.offsetLeft&&t<this.spectrum.memory.width&&(r.save(),r.strokeStyle="red",r.lineWidth=3,r.beginPath(),r.moveTo(t,this.spectrum.memory.height-
-this.spectrum.memory.offsetBottom),r.lineTo(t,this.spectrum.getTransformedY(this.spectrum.hovered.y,m.styles,this.spectrum.memory.height,this.spectrum.memory.offsetBottom,this.spectrum.memory.offsetTop)),r.stroke(),r.restore())}};g&&(m.loadSpectrum(g),g.molecule&&k.loadMolecule(g.molecule));return[k,m]};let c=new B.JCAMPInterpreter;c.convertHZ2PPM=!0;q.readJCAMP=function(b){return c.read(b)}})(ChemDoodle,ChemDoodle.io,ChemDoodle.structures);
+A.trim(),g.length!==0&&A.length!==0&&g.push("\n"),g.push(A)}f.setup();return f};
+
+e.makeStructureSpectrumSet = function (
+  b,
+  f,
+  w1 = 200,
+  h1 = 200,
+  w2 = 400,
+  h2 = 200
+) 
+/* !!! NOTE: Parameter w1,h1,w2,h2 are added to support the ability
+   to initialize the width and height of both the Spectral and
+   Molecule Canvas when called */ 
+{
+  this.convertHZ2PPM = !0;
+  let g = this.read(f);
+
+  let k = new q.ViewerCanvas(b + "_molecule", w1, h1);
+  k.styles.atoms_displayTerminalCarbonLabels_2D = !0;
+  k.styles.atoms_displayImplicitHydrogens_2D = !0;
+
+  const hoverInfo = document.getElementById('hoverInfo'); 
+  /* !!! NOTE: hoverInfo is added */
+
+  k.mouseout = function (r) {
+    hoverInfo.style.display = 'none';
+    if (this.molecules.length !== 0) {
+      for (let t = 0, v = this.molecules[0].atoms.length; t < v; t++)
+        this.molecules[0].atoms[t].isHover = !1;
+      g.hovered = u;
+      this.repaint();
+      m.repaint();
+    }
+  };
+  k.touchend = k.mouseout;
+
+  /* !!! NOTE: the entire k.mousemove event is modified */
+  k.mousemove = function (r) {
+    if (this.molecules.length === 0 || !r || !r.p) return;
+    let atoms = this.molecules[0].atoms;
+    if (!atoms || atoms.length === 0) return;
+
+    let t = null;
+    for (let i = 0; i < atoms.length; i++) {
+		let y = atoms[i];
+		y.isHover = false;
+
+		// Skip if atom doesn't have proper coordinates
+		if (typeof y.x !== "number" || typeof y.y !== "number") continue;
+
+		// Compare distance only if both points exist
+		if (t === null || r.p.distance(y) < r.p.distance(t)) {
+			t = y;
+		}
+    }
+
+    g.hovered = null;
+
+    if (t && typeof t.x === "number" && r.p.distance(t) < 20) {
+		console.log("Hovered atom ID:", t.pid || "(no id)");
+
+		const struc_canvas = document.getElementById("struc_molecule");
+		/* 'struc_molecule' refers to the actual <canvas> element defined in index.html,
+			which is used here to get its on-screen position via getBoundingClientRect(). */
+
+		const rect = struc_canvas.getBoundingClientRect();
+		hoverInfo.style.left = (rect.left + r.p.x + 10) + "px";
+		hoverInfo.style.top = (rect.top + r.p.y + 10) + "px";
+		hoverInfo.textContent = `Atom ID: ${t.pid || "(none)"}`;
+		hoverInfo.style.display = "block";
+
+      if (t.assigned && t.assigned.as) {
+        for (let v = 0, x = t.assigned.as.length; v < x; v++)
+          t.assigned.as[v].isHover = true;
+        m.spectrum.hovered = t.assigned;
+      }
+    }
+
+    this.repaint();
+    m.repaint();
+  };
+
+    /* !!! NOTE: k.mousedown event is added */
+  k.mousedown = function (r) {
+    if (this.molecules.length === 0 || !r || !r.p) return;
+    let atoms = this.molecules[0].atoms;
+    if (!atoms || atoms.length === 0) return;
+
+    let t = null;
+    for (let i = 0; i < atoms.length; i++) {
+      let y = atoms[i];
+      y.isHover = false;
+
+      // Skip if atom doesn't have proper coordinates
+      if (typeof y.x !== "number" || typeof y.y !== "number") continue;
+
+      // Compare distance only if both points exist
+      if (t === null || r.p.distance(y) < r.p.distance(t)) {
+        t = y;
+      }
+    }
+
+    g.hovered = null;
+
+    if (t && typeof t.x === "number" && r.p.distance(t) < 20) {
+		if (!selectedAssignment) {
+			return
+		}
+
+      	const inputEl = selectedAssignment.querySelector(".atom-assign-input");
+
+		if (inputEl) {
+			if (inputEl.value.trim() === "") {
+			inputEl.value = t.pid;
+			} else {
+			inputEl.value += "," + t.pid;
+			}
+		}
+    }
+	this.repaint();
+    m.repaint();
+  };
+
+//   k.touchmove = k.mousemove;
+
+  k.drawChildExtras = function (r, t) {
+    if (this.molecules.length !== 0) {
+      /* !!! NOTE */
+      let viewingMode = "CNMR";
+
+      if (viewingMode === "IR") {
+        for (let i = 0; i < this.molecules[0].bonds.length; i++) {
+          const bond = this.molecules[0].bonds[i];
+          if (bond.a1.isHover && bond.a2.isHover) {
+            r.save();
+            r.strokeStyle = "red";
+            r.lineWidth = 3;
+            r.beginPath();
+            r.moveTo(bond.a1.x, bond.a1.y);
+            r.lineTo(bond.a2.x, bond.a2.y);
+            r.stroke();
+            r.restore();
+          }
+        }
+      } else {
+        for (let v = 0, x = this.molecules[0].atoms.length; v < x; v++)
+          this.molecules[0].atoms[v].drawDecorations(r, t);
+      }
+    }
+  };
+
+  let m = new q.PerspectiveCanvas(b + "_spectrum", w2, h2);
+  /* !!! NOTE: ObserverCanvas is changed to PerspectiveCanvas
+     to support the ability to Zoom in and Zoom out in the Spectral Canvas */
+
+  m.styles.plots_showYAxis = !1;
+  m.styles.plots_flipXAxis = !0;
+
+  m.mouseout = function (r) {
+    if (this.spectrum && this.spectrum.assignments) {
+      	for (let t = 0, v = k.molecules[0].atoms.length; t < v; t++)
+			k.molecules[0].atoms[t].isHover = !1;
+			this.spectrum.hovered = u;
+			k.repaint();
+			this.repaint();
+		}
+  };
+
+  m.touchend = m.mouseout;
+
+  m.mousemove = function (r) {
+	if (!this.spectrum) {
+		return
+	}
+
+	let z = u;
+
+	for (let v = 0, x = this.spectrum.data.length; v < x; v++) {
+	let y = this.spectrum.data[v];
+	if (
+		z === u ||
+		Math.abs(
+		this.spectrum.getTransformedX(
+			y.x,
+			this.styles,
+			this.spectrum.memory.width,
+			this.spectrum.memory.offsetLeft
+		) - r.p.x
+		) <
+		Math.abs(
+		this.spectrum.getTransformedX(
+			z.x,
+			this.styles,
+			this.spectrum.memory.width,
+			this.spectrum.memory.offsetLeft
+		) - r.p.x
+		)
+	) {
+		z = y;
+	}
+	}
+
+	if (
+	Math.abs(
+		this.spectrum.getTransformedX(
+		z.x,
+		this.styles,
+		this.spectrum.memory.width,
+		this.spectrum.memory.offsetLeft
+		) - r.p.x
+	) < 20
+	) {
+	const spec_canvas = document.getElementById("spec_spectrum");
+	const rect = spec_canvas.getBoundingClientRect();
+
+	hoverInfo.style.left = rect.left + r.p.x + 10 + "px";
+	hoverInfo.style.top = rect.top + r.p.y + 10 + "px";
+	hoverInfo.textContent = `X: ${z.x || "(none)"}, Y: ${z.y || "(none)"}`;
+	hoverInfo.style.display = "block";
+
+	this.spectrum.hovered = z;
+	}
+	
+    if (this.spectrum.assignments) {
+      let t = u;
+
+      for (let v = 0, x = k.molecules[0].atoms.length; v < x; v++)
+        k.molecules[0].atoms[v].isHover = !1;
+
+      this.spectrum.hovered = u;
+
+      for (let v = 0, x = this.spectrum.assignments.length; v < x; v++) {
+        let y = this.spectrum.assignments[v];
+        if (
+          t === u ||
+          Math.abs(
+            this.spectrum.getTransformedX(
+              y.x,
+              this.styles,
+              this.spectrum.memory.width,
+              this.spectrum.memory.offsetLeft
+            ) - r.p.x
+          ) <
+          Math.abs(
+            this.spectrum.getTransformedX(
+              t.x,
+              this.styles,
+              this.spectrum.memory.width,
+              this.spectrum.memory.offsetLeft
+            ) - r.p.x
+          )
+        )
+          t = y;
+      }
+
+      if (
+        Math.abs(
+          this.spectrum.getTransformedX(
+            t.x,
+            this.styles,
+            this.spectrum.memory.width,
+            this.spectrum.memory.offsetLeft
+          ) - r.p.x
+        ) < 20
+      ) {
+        for (let v = 0, x = t.as.length; v < x; v++)
+          t.as[v].isHover = !0;
+        this.spectrum.hovered = t;
+      }
+
+      k.repaint();
+      this.repaint();
+    }
+  };
+
+  m.mousedown = function(r) {
+	this.dragRange = new q.structures.Point(event.p.x, event.p.x);
+	
+	if (!this.spectrum) {
+		return
+	}
+
+	let z = u;
+
+	for (let v = 0, x = this.spectrum.data.length; v < x; v++) {
+	let y = this.spectrum.data[v];
+	if (
+		z === u ||
+		Math.abs(
+		this.spectrum.getTransformedX(
+			y.x,
+			this.styles,
+			this.spectrum.memory.width,
+			this.spectrum.memory.offsetLeft
+		) - r.p.x
+		) <
+		Math.abs(
+		this.spectrum.getTransformedX(
+			z.x,
+			this.styles,
+			this.spectrum.memory.width,
+			this.spectrum.memory.offsetLeft
+		) - r.p.x
+		)
+	) {
+		z = y;
+	}
+	}
+
+	if (
+	Math.abs(
+		this.spectrum.getTransformedX(
+		z.x,
+		this.styles,
+		this.spectrum.memory.width,
+		this.spectrum.memory.offsetLeft
+		) - r.p.x
+	) < 20
+	) {
+	
+	if (!selectedAssignment) {
+			return
+		}
+
+      	const inputElX = selectedAssignment.querySelector(".struc-file-reader-x");
+		const inputElY = selectedAssignment.querySelector(".struc-file-reader-y");
+
+		if (inputElX && inputElY) {
+			if (inputElX.value.trim() !== "" || inputElY.value.trim() !== "") {
+				alert("Each X and Y input can contain only a single value. Please make sure the input boxes are empty before adding a new value")
+			} else {
+				inputElX.value = z.x?.toFixed(4)
+				inputElY.value = z.y?.toFixed(4)
+			}
+		}
+	}
+  }
+
+  m.mouseout = function() {hoverInfo.style.display = "none"};
+
+  m.touchend = m.mouseout
+
+  m.touchmove = m.mousemove;
+
+  m.drawChildExtras = function (r) {
+    if (this.spectrum && this.spectrum.hovered) {
+      let t = this.spectrum.getTransformedX(
+        this.spectrum.hovered.x,
+        m.styles,
+        this.spectrum.memory.width,
+        this.spectrum.memory.offsetLeft
+      );
+
+      if (
+        t >= this.spectrum.memory.offsetLeft &&
+        t < this.spectrum.memory.width
+      ) {
+        r.save();
+        r.strokeStyle = "red";
+        r.lineWidth = 3;
+        r.beginPath();
+        r.moveTo(
+          t,
+          this.spectrum.memory.height - this.spectrum.memory.offsetBottom
+        );
+        r.lineTo(
+          t,
+          this.spectrum.getTransformedY(
+            this.spectrum.hovered.y,
+            this.styles,
+            this.spectrum.memory.height,
+            this.spectrum.memory.offsetBottom,
+            this.spectrum.memory.offsetTop
+          )
+        );
+        r.stroke();
+        r.restore();
+      }
+    }
+  };
+
+  if (g) {
+    m.loadSpectrum(g);
+    if (g.molecule) k.loadMolecule(g.molecule);
+  }
+
+  return [k, m];
+};
+
+
+let c=new B.JCAMPInterpreter;c.convertHZ2PPM=!0;q.readJCAMP=function(b){return c.read(b)}})(ChemDoodle,ChemDoodle.io,ChemDoodle.structures);
 (function(q,B,w,u,l,n,d){B.JSONInterpreter=function(){};let e=B.JSONInterpreter.prototype;e.contentTo=function(b,f){b||=[];f||=[];var g=!0;for(let v=0,x=b.length;v<x;v++){var k=b[v];for(let y=0,a=k.atoms.length;y<a;y++)if(k.atoms[y].pid===d){g=!1;break}if(g)for(let y=0,a=k.bonds.length;y<a;y++)if(k.bonds[y].pid===d){g=!1;break}}let m=k=0,r=0;for(let v=0,x=b.length;v<x;v++){let y=b[v],a=d;for(let h=0,p=y.atoms.length;h<p;h++){var t=y.atoms[h];if(g){if(t.tmpid="a"+t.pid,a===d||a>t.pid)a=t.pid}else t.tmpid=
 "a"+k++}for(let h=0,p=y.bonds.length;h<p;h++)t=y.bonds[h],t.tmpid=g?"b"+t.pid:"b"+m++;y.tmpid="m"+(a===d?r++:a)}k=0;for(let v=0,x=f.length;v<x;v++)f[v].tmpid="s"+k++;g={};if(b&&b.length>0){g.m=[];for(let v=0,x=b.length;v<x;v++)g.m.push(this.molTo(b[v]))}if(f&&f.length>0){g.s=[];for(let v=0,x=f.length;v<x;v++)g.s.push(this.shapeTo(f[v]))}for(let v=0,x=b.length;v<x;v++){k=b[v];for(let y=0,a=k.atoms.length;y<a;y++)k.atoms[y].tmpid=d;for(let y=0,a=k.bonds.length;y<a;y++)k.bonds[y].tmpid=d;k.tmpid=d}for(let v=
 0,x=f.length;v<x;v++)f[v].tmpid=d;return g};e.contentFrom=function(b){let f={molecules:[],shapes:[]};if(b.m)for(let g=0,k=b.m.length;g<k;g++)f.molecules.push(this.molFrom(b.m[g]));if(b.s)for(let g=0,k=b.s.length;g<k;g++)f.shapes.push(this.shapeFrom(b.s[g],f.molecules));for(let g=0,k=f.molecules.length;g<k;g++){b=f.molecules[g];for(let m=0,r=b.atoms.length;m<r;m++)b.atoms[m].tmpid=d;for(let m=0,r=b.bonds.length;m<r;m++)b.bonds[m].tmpid=d}for(let g=0,k=f.shapes.length;g<k;g++)f.shapes[g].tmpid=d;return f};
