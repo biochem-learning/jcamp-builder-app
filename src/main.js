@@ -11,7 +11,11 @@
 
 ///Important: Use Chemdoodle get mol/spec to identify peaks instead of RDKit
 
-const endPoint = "https://jcamp-builder-api.onrender.com";
+// Rendering and JCAMP parsing use the bundled library. Disable its optional
+// DOMContentLoaded cloud update check so starting the app makes no API call.
+if (typeof ChemDoodle !== "undefined" && ChemDoodle.iChemLabs) {
+  ChemDoodle.iChemLabs.checkForUpdates = () => {};
+}
 
 function getDivAndParentEl(divSelector) {
     let div = document.querySelector(divSelector);
@@ -243,37 +247,8 @@ addAssignmentsBtn.addEventListener("click", () => createMDAssignments())
 //   messageDisplay.style.color = type === "error" ? "red" : "green";
 // }
 
-async function buildJcamp(metadatas, specJcamp, strucJcamp, assignments) {
-    if (!strucJcamp) {
-      throw new Error("Invalid Structure JCAMP file.");
-    }
-    if (!specJcamp) {
-      throw new Error("Invalid Spectral JCAMP file.");
-    }
-
-    const response = await fetch(endPoint + "/build_jcamp", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        metadatas: metadatas,
-        specJcamp: specJcamp,
-        strucJcamp: strucJcamp,
-        assignments: assignments
-    })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const built_jcamp = await response.text(); 
-    return built_jcamp;
-}
-
 mergeBtn = document.querySelector("#merge-btn")
-mergeBtn.addEventListener("click", async function() {
+mergeBtn.addEventListener("click", function() {
     try {
       let assignments = getAssignments() ////Array of array
       for (let i = 0; i < assignments.length; i++) {
@@ -286,7 +261,7 @@ mergeBtn.addEventListener("click", async function() {
       }
 
       let metadatas = getMetadatas()
-      builtJcamp = await buildJcamp(metadatas, specFileContent, strucFileContent, assignments) 
+      builtJcamp = buildJcamp(metadatas, specFileContent, strucFileContent, assignments)
       
       displayOrHideElement(".overlay")
       displayOrHideElement("#downloadable-content") 
@@ -433,7 +408,7 @@ prominenceInput.addEventListener("keypress", e => e.stopPropagation());
 
 const autoIdBtn = document.querySelector("#auto-id");
 
-autoIdBtn.addEventListener("click", async () => {
+autoIdBtn.addEventListener("click", () => {
   try {
     if (!spectrumMap || !(spectrumMap instanceof Map) || spectrumMap.size === 0) {
       throw new Error("Invalid spectrum file");
@@ -442,17 +417,14 @@ autoIdBtn.addEventListener("click", async () => {
     const promInput = document.querySelector("#prominence-input")?.value.trim();
     const prominence = promInput === "" ? null : Number(promInput);
 
-    if (isNaN(prominence)) {
-      throw new Error("Invalid prominence value — must be a number.");
+    if (prominence !== null && !Number.isFinite(prominence)) {
+      throw new Error("Invalid prominence value — must be a finite number.");
     }
-
-    document.querySelectorAll('.assignments-wrapper').forEach(el => el.remove());
-    numAssignments = 0;
 
     const xValues = Array.from(spectrumMap.keys());
     const yValues = Array.from(spectrumMap.values());
 
-    const peaks = await findPeaks(yValues, prominence);
+    const peaks = findPeaks(yValues, prominence);
 
     const points = peaks.map(i => ({
       x: xValues[i],
@@ -460,6 +432,10 @@ autoIdBtn.addEventListener("click", async () => {
     }));
 
     console.log(points);
+
+    document.querySelectorAll('.assignments-wrapper').forEach(el => el.remove());
+    numAssignments = 0;
+    selectedAssignment = null;
 
     points.forEach(p => {
       createAssignments(p.x.toFixed(4), p.y.toFixed(4));
@@ -469,21 +445,6 @@ autoIdBtn.addEventListener("click", async () => {
     alert(e.message || e);
   }
 });
-
-async function findPeaks(array, prominence) {
-  const response = await fetch(endPoint + "/find_peak", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ array, prominence })
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
-  }
-
-  const { peaks } = await response.json();
-  return peaks;
-}
 
 function getYCoorFromX(xCoors, spectrumMap){ /// xCoor is expected to be an array
     const yCoors = [];
