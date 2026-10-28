@@ -16,8 +16,29 @@ button {
 }
 
 .struc-btn {
-    width: 47%;
-    height: 100%;
+    flex: 1 1 16rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0.15rem 0.35rem;
+    overflow-wrap: anywhere;
+}
+
+.struc-btns {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.spec-section {
+    display: flex;
+    flex-direction: column;
+}
+
+#spec-file-reader {
+    flex: 0 0 auto;
+    min-width: 0;
 }
 
 header {
@@ -85,6 +106,19 @@ body {
     flex-direction: row;
 }
 
+.metadata > input {
+    min-width: 0;
+}
+
+.metadata > .metadata-input {
+    flex: 1;
+}
+
+.metadata > .delete-assign {
+    flex: 0 0 1.25rem;
+    margin-left: 0.25rem !important;
+}
+
 #atom-assign-section {
     position: absolute;
     display: none;
@@ -120,14 +154,18 @@ body {
 #spec-canvas-inspection {
     display: flex;
     flex-direction: row;
-    height: 80%;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
-#assigned-peaks {
-    width: 40%;
-    border-top: solid 1px;
-    border-bottom: solid 1px;
-    background-color: white;
+#spec-canvas-inspection > * {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 0;
+}
+
+#spec_spectrum {
+    flex: 1 1 100%;
 }
 
 #struc-canvas-inspection {
@@ -137,13 +175,6 @@ body {
     
 }
 
-#assigned-atoms {
-    width: 50%;
-    border-top: solid 1px;
-    border-bottom: solid 1px;
-    background-color: white;
-}
-
 #spec_spectrum, #struc_molecule {
     border: 1px solid #000;
     background-color: white;
@@ -151,12 +182,14 @@ body {
 
 #spec_spectrum {
     border-left: 0px;
-    width: 60%;
+    width: 100%;
 }
 
 #struc_molecule{
     border-left: 0px;
-    width: 50%;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
 }
 
 #user-input-section {
@@ -256,5 +289,7 @@ body {
 }
 
 #prominence-input {
-    width: 10%;
+    box-sizing: border-box;
+    width: 2.5rem;
+    max-width: 100%;
 }

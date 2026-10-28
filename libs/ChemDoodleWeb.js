@@ -806,11 +806,12 @@ e.makeStructureSpectrumSet = function (
       	const inputEl = selectedAssignment.querySelector(".atom-assign-input");
 
 		if (inputEl) {
-			if (inputEl.value.trim() === "") {
-			inputEl.value = t.pid;
-			} else {
-			inputEl.value += "," + t.pid;
-			}
+			const ids = uniqueAtomIds(inputEl.value).split(",").filter(Boolean);
+			const assigned = ids.some(id => /^-?\d+$/.test(id) && Number(id) === Number(t.pid));
+			inputEl.value = assigned
+				? ids.filter(id => !(/^-?\d+$/.test(id) && Number(id) === Number(t.pid))).join(",")
+				: uniqueAtomIds(inputEl.value + "," + t.pid);
+			inputEl.dispatchEvent(new Event("input", { bubbles: true }));
 		}
     }
 	this.repaint();
@@ -969,10 +970,51 @@ e.makeStructureSpectrumSet = function (
     }
   };
 
+  const startSpectrumZoom = m.mousedown;
+  const dragSpectrumZoom = m.drag;
+  const endSpectrumZoom = m.mouseup;
+  const clickTolerance = 5; // CSS pixels; allow a small amount of hand movement.
+
   m.mousedown = function(r) {
-	this.dragRange = new q.structures.Point(event.p.x, event.p.x);
-	
-	if (!this.spectrum) {
+    if (!this.spectrum || !this.spectrum.data.length) return;
+    this.spectrum.hovered = u;
+    hoverInfo.style.display = "none";
+    this.repaint();
+    this.peakPointerStart = { x: r.p.x, y: r.p.y };
+    this.peakPointerDragged = false;
+    startSpectrumZoom.call(this, r);
+  };
+
+  m.drag = function(r) {
+    const start = this.peakPointerStart;
+    if (!start) return;
+    if (Math.hypot(r.p.x - start.x, r.p.y - start.y) > clickTolerance) {
+      this.peakPointerDragged = true;
+    }
+    // Don't zoom for the small movements allowed during a click.
+    if (this.peakPointerDragged) dragSpectrumZoom.call(this, r);
+  };
+
+  m.mouseup = function(r) {
+    const start = this.peakPointerStart;
+    if (!start) return;
+    const dragged = this.peakPointerDragged ||
+      Math.hypot(r.p.x - start.x, r.p.y - start.y) > clickTolerance;
+    this.peakPointerStart = null;
+    this.peakPointerDragged = false;
+    if (dragged) {
+      endSpectrumZoom.call(this, r);
+      this.dragRange = u;
+      this.repaint();
+      return;
+    }
+    this.dragRange = u;
+    this.repaint();
+    this.assignPeakAt(r);
+  };
+
+  m.assignPeakAt = function(r) {
+	if (!this.spectrum || !this.spectrum.data.length) {
 		return
 	}
 
@@ -1027,12 +1069,17 @@ e.makeStructureSpectrumSet = function (
 			} else {
 				inputElX.value = z.x?.toFixed(4)
 				inputElY.value = z.y?.toFixed(4)
+				inputElY.dispatchEvent(new Event("input", { bubbles: true }));
 			}
 		}
 	}
   }
 
-  m.mouseout = function() {hoverInfo.style.display = "none"};
+  m.mouseout = function() {
+    hoverInfo.style.display = "none";
+    if (this.spectrum) this.spectrum.hovered = u;
+    this.repaint();
+  };
 
   m.touchend = m.mouseout
 

@@ -104,14 +104,25 @@ specFileInput.addEventListener("change", function (event) {
         specFileContent, 
         0,
         0,
-        percentage('#spec_spectrum',65,"width"), 
+        percentage('#spec_spectrum',100,"width"),
         percentage('#spec_spectrum',100,"height")
     )
+    installAssignmentHighlights(specCanvas[1]);
   });
 });
 
 strucFileInput.addEventListener("change", function (event) {
   handleFileSelection(event, (content) => {
+    const hoverInfo = document.getElementById("hoverInfo");
+    hoverInfo.style.display = "none";
+    hoverInfo.textContent = "";
+    // Atom IDs refer to a particular structure; keep the spectrum coordinates
+    // but discard those references when replacing the structure.
+    if (strucFileContent !== undefined) {
+      document.querySelectorAll(".atom-assign-input").forEach(input => {
+        input.value = "";
+      });
+    }
     removeCanvas("struc_molecule")
     strucCanvas = null;
     strucFileContent = content;
@@ -119,13 +130,13 @@ strucFileInput.addEventListener("change", function (event) {
     strucCanvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
         'struc', 
         strucFileContent, 
-        percentage('#struc_molecule',50, "width"), 
+        percentage('#struc_molecule',100, "width"),
         percentage('#struc_molecule',100, "height"),
         0, 
         0,
     )
     console.log(strucCanvas)
-    strucCanvas[0].repaint()
+    installStructureAssignmentHighlights(strucCanvas[0]);
   });
 });
 
@@ -164,6 +175,89 @@ function handleFileSelection(event, callback) {
 
 let numAssignments = 0;
 let selectedAssignment = null;
+let assignmentHighlightFrame = null;
+
+function refreshAssignmentHighlights() {
+  if (assignmentHighlightFrame !== null ||
+      ((!specCanvas || !specCanvas[1]) && (!strucCanvas || !strucCanvas[0]))) return;
+  assignmentHighlightFrame = requestAnimationFrame(() => {
+    assignmentHighlightFrame = null;
+    if (specCanvas && specCanvas[1]) specCanvas[1].repaint();
+    if (strucCanvas && strucCanvas[0]) strucCanvas[0].repaint();
+  });
+}
+
+function installStructureAssignmentHighlights(canvas) {
+  const drawExtras = canvas.drawChildExtras;
+  canvas.drawChildExtras = function(ctx, styles) {
+    if (drawExtras) drawExtras.call(this, ctx, styles);
+    if (!selectedAssignment) return;
+    const ids = new Set(selectedAssignment.querySelector('.atom-assign-input').value
+      .split(/[\s,]+/).filter(id => /^-?\d+$/.test(id)).map(Number));
+    if (ids.size === 0) return;
+    ctx.save();
+    ctx.translate(this.width / 2, this.height / 2);
+    ctx.rotate(this.styles.rotateAngle);
+    ctx.scale(this.styles.scale, this.styles.scale);
+    ctx.translate(-this.width / 2, -this.height / 2);
+    ctx.strokeStyle = '#c43d32';
+    ctx.fillStyle = 'rgba(196, 61, 50, 0.15)';
+    ctx.lineWidth = 2 / this.styles.scale;
+    for (const molecule of this.molecules) {
+      for (const atom of molecule.atoms) {
+        if (!ids.has(Number(atom.pid))) continue;
+        ctx.beginPath();
+        ctx.arc(atom.x, atom.y, Math.max(8, this.styles.atoms_font_size_2D / 2 + 3),
+          0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  };
+  canvas.repaint();
+}
+
+function installAssignmentHighlights(canvas) {
+  const drawExtras = canvas.drawChildExtras;
+  canvas.drawChildExtras = function(ctx) {
+    const spectrum = this.spectrum;
+    const memory = spectrum && spectrum.memory;
+    if (memory && memory.width) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(memory.offsetLeft, memory.offsetTop,
+        memory.width - memory.offsetLeft,
+        memory.height - memory.offsetBottom - memory.offsetTop);
+      ctx.clip();
+      document.querySelectorAll('.assignments-wrapper').forEach(row => {
+        const xText = row.querySelector('.struc-file-reader-x').value.trim();
+        const yText = row.querySelector('.struc-file-reader-y').value.trim();
+        if (xText === '') return;
+        const x = Number(xText);
+        const y = yText === '' ? getClosestValues(spectrumMap, x) : Number(yText);
+        if (!Number.isFinite(x) || y === null || !Number.isFinite(y)) return;
+        const px = spectrum.getTransformedX(x, this.styles, memory.width, memory.offsetLeft);
+        const py = spectrum.getTransformedY(y, this.styles, memory.height,
+          memory.offsetBottom, memory.offsetTop);
+        const selected = row === selectedAssignment;
+        ctx.strokeStyle = selected ? '#c43d32' : '#7652c7';
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = selected ? 3 : 2;
+        ctx.beginPath();
+        ctx.moveTo(px, memory.height - memory.offsetBottom);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(px, py, selected ? 4 : 3, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+    if (drawExtras) drawExtras.call(this, ctx);
+  };
+  canvas.repaint();
+}
 
 function selectAssignment(div) {
   if (selectedAssignment) {
@@ -172,6 +266,19 @@ function selectAssignment(div) {
 
   div.style.backgroundColor = '#c4b9f4';
   selectedAssignment = div;
+  refreshAssignmentHighlights();
+}
+
+function uniqueAtomIds(value) {
+  const seen = new Set();
+  return String(value).split(/[\s,]+/).filter(Boolean).filter(id => {
+    // Treat 01 and 1 as the same ID, while keeping invalid entries available
+    // for the existing validation to report instead of silently discarding them.
+    const key = /^-?\d+$/.test(id) ? Number(id) : id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).join(",");
 }
 
 function createAssignments(x = "", y = "" , atomAssignment="") {
@@ -187,6 +294,7 @@ function createAssignments(x = "", y = "" , atomAssignment="") {
   selectedAssignment = wrapper;
 
   wrapper.addEventListener("click", () => selectAssignment(wrapper));
+  wrapper.addEventListener("input", refreshAssignmentHighlights);
 
   const xDiv = document.createElement("div");
   xDiv.className = "assignments";
@@ -205,8 +313,13 @@ function createAssignments(x = "", y = "" , atomAssignment="") {
   const atomDiv = document.createElement("div");
   atomDiv.className = "assignments atom-assignment";
   atomDiv.innerHTML = 'Atom IDs: <input class="assign-input file-reader atom-assign-input" type="text"/>';
+  const atomInput = atomDiv.querySelector("input");
+  atomInput.addEventListener("change", () => {
+    atomInput.value = uniqueAtomIds(atomInput.value);
+    refreshAssignmentHighlights();
+  });
   if (atomAssignment !== "") {
-    atomDiv.querySelector("input").value = atomAssignment;
+    atomInput.value = uniqueAtomIds(atomAssignment);
   }
 
   const deleteBtn = document.createElement("button");
@@ -217,6 +330,7 @@ function createAssignments(x = "", y = "" , atomAssignment="") {
     wrapper.remove();
     numAssignments -= 1;
     if (selectedAssignment === wrapper) selectedAssignment = null;
+    refreshAssignmentHighlights();
   });
 
   wrapper.appendChild(xDiv);
@@ -225,6 +339,7 @@ function createAssignments(x = "", y = "" , atomAssignment="") {
   wrapper.appendChild(deleteBtn);
 
   document.querySelector(".right-section").appendChild(wrapper);
+  refreshAssignmentHighlights();
   console.log(numAssignments)
 }
 
@@ -235,6 +350,21 @@ function createMDAssignments() {
   const metadataDiv = document.createElement("div");
   metadataDiv.className = "metadata";
   metadataDiv.innerHTML = '<input class="label" type="text"/>: <input class="metadata-input" type="text"/>';
+  const labelInput = metadataDiv.querySelector(".label");
+  labelInput.addEventListener("input", () => {
+    const value = labelInput.value;
+    const start = value.slice(0, labelInput.selectionStart).toUpperCase().length;
+    const end = value.slice(0, labelInput.selectionEnd).toUpperCase().length;
+    labelInput.value = value.toUpperCase();
+    labelInput.setSelectionRange(start, end);
+  });
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete-assign";
+  deleteBtn.type = "button";
+  deleteBtn.textContent = "X";
+  deleteBtn.setAttribute("aria-label", "Delete custom metadata");
+  deleteBtn.addEventListener("click", () => metadataDiv.remove());
+  metadataDiv.appendChild(deleteBtn);
   document.querySelector("#user-input-section").appendChild(metadataDiv);
 }
 
@@ -357,7 +487,7 @@ function getMetadatas() {
 
     // Case 1: label is an input (user-created)
     if (labelEl.tagName.toLowerCase() === "input") {
-      label = labelEl.value.trim();
+      label = labelEl.value.trim().toUpperCase();
     } 
     // Case 2: label is <p>
     else {
@@ -522,6 +652,7 @@ idFromXBtn.addEventListener("click", () => {
         yInputs[item.idx].value = yCoors[i].toFixed(4);
       }
     });
+    refreshAssignmentHighlights();
   } catch (e) {
     alert(e.message || e);
   }
