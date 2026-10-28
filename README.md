@@ -31,4 +31,4 @@ Open the applications in your browser: <http://localhost:8000>
 
 ## Acknoledgement
 
-This project uses a modified version of [ChemDoodle Web Components](https://web.chemdoodle.com/) by iChemLabs, licensed under GPLv3.
+This project uses [ChemDoodle Web Components](https://web.chemdoodle.com/) by iChemLabs, licensed under GPLv3.
