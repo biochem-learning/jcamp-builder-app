@@ -1,9 +1,7 @@
-/** Local equivalent of the former /build_jcamp route for app inputs. */
 function buildJcamp(metadatas, specJcamp, strucJcamp, assignments) {
   if (!strucJcamp) throw new Error("Invalid Structure JCAMP file.");
   if (!specJcamp) throw new Error("Invalid Spectral JCAMP file.");
 
-  // Preserve the API's headers (including its empty BLOCKS value).
   const metadata = ["##DATA_TYPE=LINK", "##BLOCKS="];
   for (const [key, value] of Object.entries(metadatas)) {
     metadata.push(`##${key}=${value}`);
@@ -26,7 +24,6 @@ function buildJcamp(metadatas, specJcamp, strucJcamp, assignments) {
 }
 
 function jcampBlock(text, blockId) {
-  // Match Python str.splitlines(), including CRLF and a final line terminator.
   const lines = text.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/);
   if (lines[lines.length - 1] === "") lines.pop();
   lines.splice(Math.min(1, lines.length), 0, `##BLOCK_ID=${blockId}`);
@@ -34,9 +31,6 @@ function jcampBlock(text, blockId) {
 }
 
 function jcampNumber(value) {
-  // The old fetch serialized numbers as JSON before Python formatted them.
-  // Integer JSON tokens stay integers; small decimal floats use Python's
-  // scientific notation, with an exponent padded to at least two digits.
   if (value === null || !Number.isFinite(value)) return "None";
   const token = JSON.stringify(value);
   if (!/[.e]/i.test(token)) return token;

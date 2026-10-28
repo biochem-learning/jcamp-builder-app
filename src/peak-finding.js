@@ -1,10 +1,3 @@
-/**
- * Browser implementation of the app's scipy.signal.find_peaks(x, prominence=p)
- * subset: local maxima and an optional inclusive minimum prominence.
- * No height, distance, width, window, or array-valued filters are supported.
- * Algorithm reference:
- * https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html
- */
 function findPeaks(samples, prominence = null) {
   if (!Array.isArray(samples) &&
       !(ArrayBuffer.isView(samples) && !(samples instanceof DataView))) {
@@ -24,14 +17,12 @@ function findPeaks(samples, prominence = null) {
   while (start < samples.length - 1) {
     const height = samples[start];
     let end = start;
-    // Treat a flat top as a single candidate; endpoints cannot be peaks.
     while (end + 1 < samples.length && samples[end + 1] === height) end++;
     if (samples[start - 1] < height && samples[end + 1] < height) {
       const peak = Math.floor((start + end) / 2);
       if (prominence === null) {
         peaks.push(peak);
       } else {
-        // Equal-height peaks do not stop the search; higher samples do.
         let leftValley = height;
         let rightValley = height;
         for (let i = start - 1; i >= 0 && samples[i] <= height; i--) {
@@ -50,7 +41,6 @@ function findPeaks(samples, prominence = null) {
   return peaks;
 }
 
-// Keep the same file usable as a classic browser script and in Node tests.
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { findPeaks };
 }

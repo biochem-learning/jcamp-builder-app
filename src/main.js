@@ -11,8 +11,6 @@
 
 ///Important: Use Chemdoodle get mol/spec to identify peaks instead of RDKit
 
-// Rendering and JCAMP parsing use the bundled library. Disable its optional
-// DOMContentLoaded cloud update check so starting the app makes no API call.
 if (typeof ChemDoodle !== "undefined" && ChemDoodle.iChemLabs) {
   ChemDoodle.iChemLabs.checkForUpdates = () => {};
 }
@@ -116,8 +114,6 @@ strucFileInput.addEventListener("change", function (event) {
     const hoverInfo = document.getElementById("hoverInfo");
     hoverInfo.style.display = "none";
     hoverInfo.textContent = "";
-    // Atom IDs refer to a particular structure; keep the spectrum coordinates
-    // but discard those references when replacing the structure.
     if (strucFileContent !== undefined) {
       document.querySelectorAll(".atom-assign-input").forEach(input => {
         input.value = "";
@@ -272,8 +268,6 @@ function selectAssignment(div) {
 function uniqueAtomIds(value) {
   const seen = new Set();
   return String(value).split(/[\s,]+/).filter(Boolean).filter(id => {
-    // Treat 01 and 1 as the same ID, while keeping invalid entries available
-    // for the existing validation to report instead of silently discarding them.
     const key = /^-?\d+$/.test(id) ? Number(id) : id;
     if (seen.has(key)) return false;
     seen.add(key);

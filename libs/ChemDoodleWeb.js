@@ -973,7 +973,7 @@ e.makeStructureSpectrumSet = function (
   const startSpectrumZoom = m.mousedown;
   const dragSpectrumZoom = m.drag;
   const endSpectrumZoom = m.mouseup;
-  const clickTolerance = 5; // CSS pixels; allow a small amount of hand movement.
+  const clickTolerance = 5;
 
   m.mousedown = function(r) {
     if (!this.spectrum || !this.spectrum.data.length) return;
@@ -991,7 +991,6 @@ e.makeStructureSpectrumSet = function (
     if (Math.hypot(r.p.x - start.x, r.p.y - start.y) > clickTolerance) {
       this.peakPointerDragged = true;
     }
-    // Don't zoom for the small movements allowed during a click.
     if (this.peakPointerDragged) dragSpectrumZoom.call(this, r);
   };
 
