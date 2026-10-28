@@ -1,6 +1,6 @@
-# jcamp-builder-app
+# JCAMP-DX Builder
 
-A browser-based editor for assigning spectral peaks to atoms and combining spectral and molecular structure data into JCAMP-DX files compatible with applications using ChemDoodle's JCAMPInterpreter.makeStructureSpectrumSet() function.
+A web-based editor for assigning spectral peaks to atoms and combining spectral and molecular structure data into JCAMP-DX files compatible with applications using ChemDoodle's JCAMPInterpreter.makeStructureSpectrumSet() function.
 
 ![JCAMP editor](public/demo/editor.png)
 
